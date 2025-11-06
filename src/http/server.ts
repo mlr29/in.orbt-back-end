@@ -15,10 +15,17 @@ const app = fastify().withTypeProvider<ZodTypeProvider>()
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
-app.register(fastifyCors, {
-  origin: '*',
-})
+// permite múltiplas origins separadas por vírgula na env FRONTEND_URL
+const rawOrigins = process.env.FRONTEND_URL ?? '*'
+const origins = rawOrigins === '*' ? '*' : rawOrigins.split(',').map(s => s.trim())
 
+app.register(fastifyCors, {
+  origin: origins,
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+})
+ 
 app.register(createGoalRoute)
 app.register(createCompletionRoute)
 app.register(getPendingGoalsRoute)
